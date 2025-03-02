@@ -14,6 +14,9 @@ CONFIG = {
     'NUM_REPEATS': 10,
     'NUM_ACTIVATION_TAGS': 1,
 
+    'REPLACE_CHAR_FROM': '_', # Replace FROM to TO. Ex: "green_eyes -> green eyes". Replace both to None if not needed
+    'REPLACE_CHAR_TO': ' ',  # DOES NOT REPLACE CHARACTER IN ACTIVATION TAGS!
+
     # ------------------------------------------------------------------
 
     'SHUFFLE_CAPTIONS': 1,
@@ -50,10 +53,10 @@ CONFIG = {
     'RANGE_GAUSSIAN_ALPHA': (0.7, 0.9),
 
     # For tags, replace with "" as needed
-    'TAG_VFLIP': ', upside_down',
+    'TAG_VFLIP': ', upside-down',
     'TAG_GRAYSCALE': ', grayscale',
-    'TAG_ROTATE': ', black_border',
-    'TAG_TRANSLATE': ', black_bars',
+    'TAG_ROTATE': ', black border',
+    'TAG_TRANSLATE': ', black bars',
     'TAG_LINEART': ', lineart',
     'TAG_SKETCH': ', sketch',
     

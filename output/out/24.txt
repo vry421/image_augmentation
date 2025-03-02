@@ -1,1 +1,1 @@
-cat, grass, looking at viewer, black_border, sitting, black_bars, character focus
+cat, sitting, character focus, looking at viewer, grass

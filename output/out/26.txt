@@ -1,1 +1,1 @@
-dog, standing, outside, tongue out, character focus, car, grass
+dog, outside, standing, character focus, car, grass, tongue out

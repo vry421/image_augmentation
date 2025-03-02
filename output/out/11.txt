@@ -1,1 +1,1 @@
-dog, car, standing, character focus, outside, black_border, grass, tongue out
+dog, standing, grass, tongue out, car, outside, character focus

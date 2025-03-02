@@ -1,1 +1,1 @@
-cat, looking at viewer, sitting, character focus, grass
+cat, sitting, grass, looking at viewer, character focus

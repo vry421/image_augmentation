@@ -26,6 +26,9 @@ DEFAULT_CONFIG = {
     'NUM_REPEATS': 10,
     'NUM_ACTIVATION_TAGS': 1,
 
+    'REPLACE_CHAR_FROM': '_', # Replace FROM to TO. Ex: "green_eyes -> green eyes". Replace both to None if not needed
+    'REPLACE_CHAR_TO': ' ',  # DOES NOT REPLACE CHARACTER IN ACTIVATION TAGS!
+
     # ------------------------------------------------------------------
 
     'SHUFFLE_CAPTIONS': 1,
@@ -62,10 +65,10 @@ DEFAULT_CONFIG = {
     'RANGE_GAUSSIAN_ALPHA': (0.7, 0.9),
 
     # For tags, replace with "" as needed
-    'TAG_VFLIP': ', upside_down',
+    'TAG_VFLIP': ', upside-down',
     'TAG_GRAYSCALE': ', grayscale',
-    'TAG_ROTATE': ', black_border',
-    'TAG_TRANSLATE': ', black_bars',
+    'TAG_ROTATE': ', black border',
+    'TAG_TRANSLATE': ', black bars',
     'TAG_LINEART': ', lineart',
     'TAG_SKETCH': ', sketch',
     
@@ -79,6 +82,8 @@ class ImageAugmentation():
         self.OUTPUT_FOLDER = CONFIG['OUTPUT_FOLDER']
         self.NUM_REPEATS = CONFIG['NUM_REPEATS']
         self.NUM_ACTIVATION_TAGS = CONFIG['NUM_ACTIVATION_TAGS']
+        self.REPLACE_CHAR_FROM = CONFIG['REPLACE_CHAR_FROM']
+        self.REPLACE_CHAR_TO = CONFIG['REPLACE_CHAR_TO']
 
         self.SHUFFLE_CAPTIONS = CONFIG['SHUFFLE_CAPTIONS']
         self.PROB_DUPLICATE = CONFIG['PROB_DUPLICATE']
@@ -360,6 +365,27 @@ class ImageAugmentation():
         shutil.rmtree(temp_dir)
 
 
+    def __replace_char(self, file):
+
+        with open(file, 'r') as f:
+
+            caption_list = list(csv.reader(f))
+            
+            if len(caption_list) != 0:
+            
+                activation = caption_list[0][:self.NUM_ACTIVATION_TAGS]
+                captions = caption_list[0][self.NUM_ACTIVATION_TAGS:]
+                captions = [word.replace(self.REPLACE_CHAR_FROM, self.REPLACE_CHAR_TO) for word in captions]
+                caption_list = activation + captions              
+                
+        os.remove(file)
+
+        with open(file, 'w') as f:
+
+            txtfile = csv.writer(f)
+            txtfile.writerow(caption_list)       
+
+
     def augment(self) -> dict:
 
         logs = {}
@@ -401,7 +427,6 @@ class ImageAugmentation():
             'noise_gaussian_alpha': [],
         }
 
-        BYPASS_FROM_SKETCH = 0
 
         img_files = sorted(glob(temp_dir + '/*.png'))
         caption_files = sorted(glob(temp_dir + '/*.txt'))
@@ -419,9 +444,17 @@ class ImageAugmentation():
 
             subprocess.call(args = ['convert', filepath, filepath])
 
+        if self.REPLACE_CHAR_FROM is not None and self.REPLACE_CHAR_TO is not None:
+            print(f"Character Replacement Activated. Replacing [{self.REPLACE_CHAR_FROM}] to [{self.REPLACE_CHAR_TO}]")
+            for file in tqdm(caption_files, desc='Replacing Characters in Captions', leave=True):
+                self.__replace_char(file)
+
         for i in tqdm(range(self.NUM_REPEATS), 'Batch Progress', leave=True):
             for j, file in enumerate(tqdm(img_files, desc=f'Performing Augmentation on Batch {i + 1}', leave=False)):
                 
+                BYPASS_FROM_SKETCH = 0
+                BYPASS_FROM_LINEART = 0
+
                 new_name = str((i + 1) * num_img + (j + 1))
                 new_img = os.path.join(temp_dir, new_name + '.png')
                 new_caption = os.path.join(temp_dir, new_name + '.txt')
@@ -436,12 +469,31 @@ class ImageAugmentation():
                 if random.random() < self.PROB_DUPLICATE:
                     logs['count']['duplicate'] += 1
                     continue
+ 
+                ## COLOR JITTER
+
+                if random.random() < self.PROB_JITTER:
+                    img, logs = self.__jitter(img, logs)
 
 
+                ## SKETCH
+
+                if random.random() < self.PROB_SKETCH:
+                    img, logs = self.__sketch(img, logs, new_caption)
+                    BYPASS_FROM_SKETCH = 1
+
+
+                ## SOBEL LINEART
+
+                if random.random() < self.PROB_LINEART and not BYPASS_FROM_SKETCH:
+                    img, logs = self.__lineart(img, logs, new_caption)
+                    BYPASS_FROM_LINEART = 1
+
+                
                 ## NOISE
 
-                if random.random() < self.PROB_NOISE:
-                    img, logs = self.__add_noise(img, logs)    
+                if random.random() < self.PROB_NOISE and not (BYPASS_FROM_SKETCH or BYPASS_FROM_LINEART):
+                    img, logs = self.__add_noise(img, logs)  
 
 
                 ## FLIP
@@ -470,26 +522,7 @@ class ImageAugmentation():
                 if random.random() < self.PROB_ROTATE:
                     img, logs = self.__rotate(img, logs, new_caption)
                 
-
-                ## COLOR JITTER
-
-                if random.random() < self.PROB_JITTER:
-                    img, logs = self.__jitter(img, logs)
-
-
-                ## SKETCH
-
-                if random.random() < self.PROB_SKETCH:
-                    img, logs = self.__sketch(img, logs, new_caption)
-                    BYPASS_FROM_SKETCH = 1
-
-
-                ## SOBEL LINEART
-
-                if random.random() < self.PROB_LINEART and not BYPASS_FROM_SKETCH:
-                    img, logs = self.__lineart(img, logs, new_caption)
-
-                
+ 
                 ## RANDOM CROP
 
                 if random.random() < self.PROB_CROP:
