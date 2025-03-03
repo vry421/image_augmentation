@@ -9,6 +9,7 @@ import subprocess
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from glob import glob
+from copy import deepcopy
 
 from utils import initial_rename
 
@@ -23,11 +24,19 @@ DEFAULT_CONFIG = {
 
     'INPUT_FOLDER': 'sample', # Folder should be inside /data
     'OUTPUT_FOLDER': 'out', # Folder will be placed inside /output
-    'NUM_REPEATS': 10,
+    'NUM_REPEATS': 5,
     'NUM_ACTIVATION_TAGS': 1,
 
     'REPLACE_CHAR_FROM': '_', # Replace FROM to TO. Ex: "green_eyes -> green eyes". Replace both to None if not needed
     'REPLACE_CHAR_TO': ' ',  # DOES NOT REPLACE CHARACTER IN ACTIVATION TAGS!
+
+    'IMAGE_SHUFFLE': 1, # Shuffle images before augmentation
+    'IMAGE_DUPLICATE_LIST': [
+        'cat', 
+        'rat',
+    ], # List of image files to duplicate prior to augmentation. Only pass filenames WITHOUT EXTENSION!
+       # Duplication is done PRIOR TO AUGMENTATION
+    'IMAGE_DUPLICATE_REPEAT': 1, # Number of times the images in the list is duplicated
 
     # ------------------------------------------------------------------
 
@@ -84,6 +93,9 @@ class ImageAugmentation():
         self.NUM_ACTIVATION_TAGS = CONFIG['NUM_ACTIVATION_TAGS']
         self.REPLACE_CHAR_FROM = CONFIG['REPLACE_CHAR_FROM']
         self.REPLACE_CHAR_TO = CONFIG['REPLACE_CHAR_TO']
+        self.IMAGE_DUPLICATE_LIST = CONFIG['IMAGE_DUPLICATE_LIST']
+        self.IMAGE_DUPLICATE_REPEAT = CONFIG['IMAGE_DUPLICATE_REPEAT']
+        self.IMAGE_SHUFFLE = CONFIG['IMAGE_SHUFFLE']
 
         self.SHUFFLE_CAPTIONS = CONFIG['SHUFFLE_CAPTIONS']
         self.PROB_DUPLICATE = CONFIG['PROB_DUPLICATE']
@@ -124,7 +136,7 @@ class ImageAugmentation():
         self.RANGE_GAUSSIAN_STD = CONFIG['RANGE_GAUSSIAN_STD']
         self.RANGE_GAUSSIAN_ALPHA = CONFIG['RANGE_GAUSSIAN_ALPHA']
 
-        initial_rename(self.INPUT_FOLDER)
+        initial_rename(self.INPUT_FOLDER, self.IMAGE_DUPLICATE_LIST, self.IMAGE_DUPLICATE_REPEAT)
         
 
     def __hflip(self, img, logs):
@@ -430,6 +442,7 @@ class ImageAugmentation():
 
         img_files = sorted(glob(temp_dir + '/*.png'))
         caption_files = sorted(glob(temp_dir + '/*.txt'))
+
         num_img = len(img_files)
         num_aug = num_img * self.NUM_REPEATS
 
@@ -450,17 +463,25 @@ class ImageAugmentation():
                 self.__replace_char(file)
 
         for i in tqdm(range(self.NUM_REPEATS), 'Batch Progress', leave=True):
-            for j, file in enumerate(tqdm(img_files, desc=f'Performing Augmentation on Batch {i + 1}', leave=False)):
+                
+            img_batch = deepcopy(img_files)
+
+            if self.IMAGE_SHUFFLE:
+                random.shuffle(img_batch)
+
+            for j, file in enumerate(tqdm(img_batch, desc=f'Performing Augmentation on Batch {i + 1}', leave=False)):
                 
                 BYPASS_FROM_SKETCH = 0
                 BYPASS_FROM_LINEART = 0
 
                 new_name = str((i + 1) * num_img + (j + 1))
                 new_img = os.path.join(temp_dir, new_name + '.png')
+                
+                orig_caption = os.path.splitext(file)[0] + '.txt'
                 new_caption = os.path.join(temp_dir, new_name + '.txt')
 
-                shutil.copy(src = img_files[j], dst = new_img)
-                shutil.copy(src = caption_files[j], dst = new_caption)
+                shutil.copy(src = file, dst = new_img)
+                shutil.copy(src = orig_caption, dst = new_caption)
 
                 img = cv2.imread(new_img)
                 
@@ -546,28 +567,32 @@ class ImageAugmentation():
                     with open(new_caption, 'r') as f:
 
                         caption_list = list(csv.reader(f))
-                        
+
                         if len(caption_list) == 0:
                             continue
+
+                        if len(caption_list) == 2: # Check if augmentation tags exist
+                            caption_list = caption_list[0] + caption_list[1]
                         
-                        activation = caption_list[0][:self.NUM_ACTIVATION_TAGS]
-                        captions = caption_list[0][self.NUM_ACTIVATION_TAGS:]
+                        activation = caption_list[:self.NUM_ACTIVATION_TAGS]
+                        captions = caption_list[self.NUM_ACTIVATION_TAGS:]
+                        captions = [caption for caption in captions if caption] # Remove empty strins
 
                         random.shuffle(captions)
-
                         caption_list = activation + captions
+
+                        
                     
                     os.remove(new_caption)
 
 
                     with open(new_caption, 'w') as f:
-
+                        # print(caption_list)
                         txtfile = csv.writer(f)
                         txtfile.writerow(caption_list)
-                
+
 
         ## Move files to output folder
         self.__move_to_output()
-
 
         return logs

@@ -5,17 +5,25 @@ from utils import ImageAugmentation, plot_counts
 
 # Before usage, install ImageMagick
 
-CONFIG = {
+DEFAULT_CONFIG = {
 
     # Parameters to be changed -----------------------------------------
 
     'INPUT_FOLDER': 'sample', # Folder should be inside /data
     'OUTPUT_FOLDER': 'out', # Folder will be placed inside /output
-    'NUM_REPEATS': 10,
+    'NUM_REPEATS': 5,
     'NUM_ACTIVATION_TAGS': 1,
 
     'REPLACE_CHAR_FROM': '_', # Replace FROM to TO. Ex: "green_eyes -> green eyes". Replace both to None if not needed
     'REPLACE_CHAR_TO': ' ',  # DOES NOT REPLACE CHARACTER IN ACTIVATION TAGS!
+
+    'IMAGE_SHUFFLE': 1, # Shuffle images before augmentation
+    'IMAGE_DUPLICATE_LIST': [
+        'cat', 
+        'rat',
+    ], # List of image files to duplicate prior to augmentation. Only pass filenames WITHOUT EXTENSION!
+       # Duplication is done PRIOR TO AUGMENTATION
+    'IMAGE_DUPLICATE_REPEAT': 1, # Number of times the images in the list is duplicated
 
     # ------------------------------------------------------------------
 
@@ -64,7 +72,7 @@ CONFIG = {
 
 def main():
 
-    img_aug = ImageAugmentation(CONFIG)
+    img_aug = ImageAugmentation()
     logs = img_aug.augment()
 
     plot_counts(logs['count'])
