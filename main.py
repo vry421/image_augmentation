@@ -5,7 +5,7 @@ from utils import ImageAugmentation, plot_counts
 
 # Before usage, install ImageMagick
 
-DEFAULT_CONFIG = {
+CONFIG = {
 
     # Parameters to be changed -----------------------------------------
 
@@ -72,7 +72,7 @@ DEFAULT_CONFIG = {
 
 def main():
 
-    img_aug = ImageAugmentation()
+    img_aug = ImageAugmentation(CONFIG)
     logs = img_aug.augment()
 
     plot_counts(logs['count'])

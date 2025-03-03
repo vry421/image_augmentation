@@ -1,1 +1,1 @@
-"['cat', ' sitting', ' character focus', ' looking at viewer', ' grass']"
+cat, looking at viewer, character focus, upside-down, grass, sitting, grayscale

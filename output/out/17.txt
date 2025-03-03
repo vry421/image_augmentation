@@ -1,1 +1,1 @@
-, black bars, grayscale
+"['dog', ' standing', ' character focus', ' tongue out', ' outside', ' grass', ' car']"
