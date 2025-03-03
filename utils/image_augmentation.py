@@ -361,18 +361,25 @@ class ImageAugmentation():
     def __move_to_output(self):
 
         img_files = sorted(glob(temp_dir + '/*.png'))
-        caption_files = sorted(glob(temp_dir + '/*.txt'))
-
-        all_files = img_files + caption_files
 
         final_output_folder = os.path.join(output_dir, self.OUTPUT_FOLDER)
+
         if os.path.isdir(final_output_folder):
             shutil.rmtree(final_output_folder)
         os.mkdir(final_output_folder)
 
 
-        for file in tqdm(all_files, desc='Moving files to output directory', leave=True):
-            shutil.move(src = file, dst = final_output_folder)
+        shuffle_list = deepcopy(img_files)
+
+        if self.IMAGE_SHUFFLE:
+            random.shuffle(shuffle_list)
+
+        for img_file in tqdm(shuffle_list, desc='Moving Files to Output Directory', leave=True):
+
+            caption_file = os.path.splitext(img_file)[0] + '.txt'
+
+            shutil.move(src = img_file, dst = final_output_folder)
+            shutil.move(src = caption_file, dst = final_output_folder)
 
         shutil.rmtree(temp_dir)
 

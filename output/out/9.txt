@@ -1,1 +1,1 @@
-cat, looking at viewer, black border, sitting, character focus, grass
+"['cat', ' sitting', ' character focus', ' looking at viewer', ' grass']"

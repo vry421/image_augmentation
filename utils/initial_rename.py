@@ -38,7 +38,10 @@ def initial_rename(folder: str, image_list: list, repeats: int):
     if image_list:
         dup_files = [file for file in img_files if os.path.splitext(os.path.basename(file))[0] in image_list]
         print(f'From image duplication list, {len(dup_files)} files are detected in the dataset.')
-        print(f'From image duplication list, {len(image_list) - len(dup_files)} files are not detected and will be ignored.')
+
+        if len(image_list) - len(dup_files) > 0:
+            print(f'From image duplication list, {len(image_list) - len(dup_files)} files are not detected and will be ignored.')
+            
         print(f'Duplication will be performed {repeats} times, leading to {len(dup_files) * repeats} duplicates.')
 
         for i in tqdm(range(repeats), desc='Duplicating Files', leave=True):

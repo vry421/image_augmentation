@@ -1,1 +1,1 @@
-"['dog', ' standing', ' character focus', ' tongue out', ' outside', ' grass', ' car']"
+dog, standing, tongue out, grayscale, car, outside, black border, grass, character focus
