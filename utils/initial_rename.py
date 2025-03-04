@@ -88,8 +88,8 @@ def create_temp(img_files: list, temp_dir: str, number_name: bool):
         if os.path.exists(caption):
             shutil.copy(src = caption, dst = os.path.join(temp_dir, new_name + '.txt'))
         else:
-            with open(os.path.join(temp_dir, new_name + '.txt'), 'w') as f:
-                f.write("")
+            with open(os.path.join(temp_dir, new_name + '.txt'), 'x') as f:
+                pass
 
 
     

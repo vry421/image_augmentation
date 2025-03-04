@@ -1,1 +1,1 @@
-cat, grayscale, grass, black border, looking at viewer, character focus, sitting
+cat, sketch, sitting, upside-down, black border, character focus, looking at viewer, grass

@@ -1,7 +1,7 @@
 import warnings
 warnings.filterwarnings('ignore')
 
-from utils import ImageAugmentation, plot_counts
+from utils import ImageAugmentation, plot_counts, get_caption
 
 # Before usage, install ImageMagick
 
@@ -17,7 +17,7 @@ CONFIG = {
     'REPLACE_CHAR_FROM': '_', # Replace FROM to TO. Ex: "green_eyes -> green eyes". Replace both to None if not needed
     'REPLACE_CHAR_TO': ' ',  # DOES NOT REPLACE CHARACTER IN ACTIVATION TAGS!
 
-    'IMAGE_SHUFFLE': 1, # Shuffle images before augmentation
+    'IMAGE_SHUFFLE': 0, # Shuffle images
     'IMAGE_DUPLICATE_LIST': [
         'cat', 
         'rat',
@@ -76,6 +76,9 @@ def main():
     logs = img_aug.augment()
 
     plot_counts(logs['count'])
+
+    # captions = get_caption(folder = 'output/out', show_captions = True)
+    
 
 if __name__ == '__main__':
     main()

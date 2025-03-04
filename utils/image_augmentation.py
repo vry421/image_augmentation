@@ -360,7 +360,7 @@ class ImageAugmentation():
 
     def __move_to_output(self):
 
-        img_files = sorted(glob(temp_dir + '/*.png'))
+        img_files = glob(temp_dir + '/*.png')
 
         final_output_folder = os.path.join(output_dir, self.OUTPUT_FOLDER)
 
@@ -368,16 +368,17 @@ class ImageAugmentation():
             shutil.rmtree(final_output_folder)
         os.mkdir(final_output_folder)
 
-
-        shuffle_list = deepcopy(img_files)
+        shuffle_list = list(range(1, len(img_files) + 1))
 
         if self.IMAGE_SHUFFLE:
             random.shuffle(shuffle_list)
-
-        for i, img_file in enumerate(tqdm(shuffle_list, desc='Moving Files to Output Directory', leave=True)):
+        
+        for i, file_num in enumerate(tqdm(shuffle_list, desc='Moving Files to Output Directory', leave=True)):
 
             new_name = str(i + 1)
-            caption_file = os.path.splitext(img_file)[0] + '.txt'
+
+            img_file = os.path.join(temp_dir, str(file_num) + '.png')
+            caption_file = os.path.join(temp_dir, str(file_num) + '.txt')
 
             shutil.move(src = img_file, dst = final_output_folder + '/' + new_name + '.png')
             shutil.move(src = caption_file, dst = final_output_folder + '/' + new_name + '.txt')
@@ -576,16 +577,16 @@ class ImageAugmentation():
 
                         caption_list = list(csv.reader(f))
 
-                        if len(caption_list) == 0:
-                            continue
-
-                        if len(caption_list) == 2: # Check if augmentation tags exist
+                        if len(caption_list) == 2:
                             caption_list = caption_list[0] + caption_list[1]
+                        elif len(caption_list) == 1:
+                            caption_list = caption_list[0]
                         
                         activation = caption_list[:self.NUM_ACTIVATION_TAGS]
                         captions = caption_list[self.NUM_ACTIVATION_TAGS:]
                         captions = [caption for caption in captions if caption] # Remove empty strins
 
+                        
                         random.shuffle(captions)
                         caption_list = activation + captions
 

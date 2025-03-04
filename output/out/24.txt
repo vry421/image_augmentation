@@ -1,1 +1,1 @@
-[]
+, grayscale, black bars
