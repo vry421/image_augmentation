@@ -1,1 +1,1 @@
-dog, standing, character focus, tongue out, outside, grass, car
+cat, sitting, grayscale, character focus, black border, looking at viewer, grass

@@ -374,12 +374,13 @@ class ImageAugmentation():
         if self.IMAGE_SHUFFLE:
             random.shuffle(shuffle_list)
 
-        for img_file in tqdm(shuffle_list, desc='Moving Files to Output Directory', leave=True):
+        for i, img_file in enumerate(tqdm(shuffle_list, desc='Moving Files to Output Directory', leave=True)):
 
+            new_name = str(i + 1)
             caption_file = os.path.splitext(img_file)[0] + '.txt'
 
-            shutil.move(src = img_file, dst = final_output_folder)
-            shutil.move(src = caption_file, dst = final_output_folder)
+            shutil.move(src = img_file, dst = final_output_folder + '/' + new_name + '.png')
+            shutil.move(src = caption_file, dst = final_output_folder + '/' + new_name + '.txt')
 
         shutil.rmtree(temp_dir)
 
